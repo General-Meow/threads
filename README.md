@@ -51,4 +51,14 @@ CompletionService interface
     - submit() - send a task to the event service
 ExecutorCompletionService class
   - Implementation of the CompletionService interface
-  - To create an instance of this you provide it with the ExecutorService pool
+  - To create an instance of this class, you instantiate it and provide it with the ExecutorService pool
+Terminating threads
+  - You can terminate normal threads in 3 ways
+    - program the task (runnable/callable) such that it checks a variable and you code it to break early
+    - throw an exception
+    - either within the runnable or outside the thread, call the Threads interrupt method
+
+
+
+
+    PLEASE IGNORE THIS CHANGE
