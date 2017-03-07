@@ -25,6 +25,7 @@ ExecutorService interface
     - isShutdown()
     - shutdownNow()
     - submit()
+    - awaitTermination(int, Unit) //block current thread for defined time or until all tasks in executor have stopped
     - etc
   - When using an executor service pool you must remember to shut it down!!!
   - To provide an executor pool with a task, you use the submit method
@@ -52,3 +53,12 @@ CompletionService interface
 ExecutorCompletionService class
   - Implementation of the CompletionService interface
   - To create an instance of this you provide it with the ExecutorService pool
+Stoping threads
+  - There are 3 ways in which you can stop a thread
+    - Program the task to check a variable and exit early when this variable holds true (have the variable togglable by providing a public method that modifies it)
+    - throw an exception
+    - Interrupt the thread by using the thread classes interrupt() method from either inside the task or outside. Doing it this way requires you to use the method isInterrupted() and program to exit.
+      - NOTE! there is another method called interrupted() which is the same but it resets the value back to false after it returns true
+    - Interrupts can happen when a task is running or blocked (in sleep), if thread is currently blocked, you usually have an opportunity within a try catch block to exit early, as its using in a catch interrupt block
+  - Threads running within an executor can also be terminated. You do so by using the Future returned from the executorService and calling the cancel method on it
+  - You can also use the shutdownNow() method on the executorService, this uses interrupts underneath and will interrupt any running thread and stop any queued up threads from starting
