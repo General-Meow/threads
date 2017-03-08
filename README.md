@@ -62,3 +62,12 @@ Stoping threads
     - Interrupts can happen when a task is running or blocked (in sleep), if thread is currently blocked, you usually have an opportunity within a try catch block to exit early, as its using in a catch interrupt block
   - Threads running within an executor can also be terminated. You do so by using the Future returned from the executorService and calling the cancel method on it
   - You can also use the shutdownNow() method on the executorService, this uses interrupts underneath and will interrupt any running thread and stop any queued up threads from starting
+Exceptions
+  - Threads that leak exceptions terminate
+  - Exceptions leaked from a thread cannot be caught in a in a try catch block from the break that creates it
+  - You can catch a leaked thread in a number of ways
+    - You can create a class that implements the UncaughtExceptionHandler interface and register an instance of it as the default Thread exception handler by using the static method Thread.setDefaultUncaughtExceptionHandler()
+    - You can register different handlers for different threads, you do this by using the method setDefaultUncaughtExceptionHandler() BUT this time using it on the current thread instance rather than using the static method
+    - You can use a combination of both default and thread specific handlers. This would use the thread specific one when possible but then the default when not set
+  - Using the default exception handler will work for threads in both an executor pool and normal threads
+  - To use different handlers for different threads in an executor, you have to use a ThreadFactory and give that to the executor during initialization. This thread factory creates the thread and returns it but before returning, will set the handler for that specific thread.
