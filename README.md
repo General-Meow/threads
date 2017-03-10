@@ -70,4 +70,88 @@ Exceptions
     - You can register different handlers for different threads, you do this by using the method setDefaultUncaughtExceptionHandler() BUT this time using it on the current thread instance rather than using the static method
     - You can use a combination of both default and thread specific handlers. This would use the thread specific one when possible but then the default when not set
   - Using the default exception handler will work for threads in both an executor pool and normal threads
-  - To use different handlers for different threads in an executor, you have to use a ThreadFactory and give that to the executor during initialization. This thread factory creates the thread and returns it but before returning, will set the handler for that specific thread.
+  - To use different handlers for different threads in an executor, you have to use a ThreadFactory and give that to the executor during initialization. This thread factory creates the thread and returns it but before returning, will set the handler for that specific thread. Using this method will limit the same handler to all the threads in the same executor though (unless you write specific code that does something smarter)
+Waiting for threads
+  - You can wait for threads in 3 ways
+    - use wait and notify methods
+    - use the Threads join method
+      - calling this on a thread will cause the calling thread to wait for the completion of the thread object your calling on
+    - for threads in pools, you can use the class CountDownLatch
+      - you create an instance of it with the amount of calls required for the latch to unleash
+      - Methods of interest
+        - countDown() decrement the count
+        - getCount()
+        - await()
+      - You then provide this instance to threads, each thread needs to call the countDown() method to decrement the counter
+      - You block the current thread by calling the await() method, this will block until the count is zerp
+
+```
+public class JoinExample {
+	public static void main(String[] args) throws InterruptedException {
+		Thread thread = new Thread(new LongRunnable(5000L));
+		thread.start();
+		System.out.println("Main thread is now blocked when waiting for other thread to complete");
+		thread.join();
+		System.out.println("Main thread now running as thread is complete");
+	}
+}
+
+class LongRunnable implements Runnable {
+
+	private long workDuration;
+	public LongRunnable(long workDuration) {
+		this.workDuration = workDuration;
+	}
+
+	@Override
+	public void run() {
+		LocalTime now =  LocalTime.now().plus(workDuration, ChronoUnit.MILLIS);
+		while(now.isAfter(LocalTime.now())){
+			System.out.println("Working");
+			try {
+				Thread.sleep(800L);
+			} catch (InterruptedException e) {
+			}
+		}
+	}
+}
+```
+
+```
+public class LatchExample {
+	public static void main(String[] args) throws InterruptedException {
+		CountDownLatch latch = new CountDownLatch(2);
+		Thread t1 = new Thread(new LongRunnable2(3000L, latch));
+		Thread t2 = new Thread(new LongRunnable2(3000L, latch));
+		t1.start();
+		t2.start();
+		System.out.println("Main thread going to wait on the latch");
+		latch.await();
+		System.out.println("Main thread now running");
+	}
+}
+
+class LongRunnable2 implements Runnable {
+
+	private long workDuration;
+	private CountDownLatch latch;
+	public LongRunnable2(long workDuration, CountDownLatch latch) {
+		this.workDuration = workDuration;
+		this.latch = latch;
+	}
+
+	@Override
+	public void run() {
+		LocalTime now =  LocalTime.now().plus(workDuration, ChronoUnit.MILLIS);
+		String name = Thread.currentThread().getName();
+		while(now.isAfter(LocalTime.now())){
+			System.out.println("[" + name +"] Working");
+			try {
+				Thread.sleep(800L);
+			} catch (InterruptedException e) {
+			}
+		}
+		this.latch.countDown();
+	}
+}
+```
